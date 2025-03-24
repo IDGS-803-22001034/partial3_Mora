@@ -42,11 +42,11 @@ class Usuario(UserMixin, db.Model):
 
     def __init__(self, username, password, fullname=""):
         self.username = username
-        # Solo genera el hash si la contraseña no es un hash ya almacenado
-        if not password.startswith("scrypt"):  # O verifica otra forma según tu hash
+        # genera el hash si la contraseña no es un hash ya puesto en base de datos
+        if not password.startswith("scrypt"):
             self.password = generate_password_hash(password)
         else:
-            self.password = password  # Usa la contraseña ya hasheada
+            self.password = password  # Aqui ya usa la contraseña en caso de que ya esté hasheada
 
         self.fullname = fullname
 
