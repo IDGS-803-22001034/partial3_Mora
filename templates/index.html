@@ -1,0 +1,206 @@
+{% extends "layout.html" %}
+
+{% block container %}
+{% from "_macros.html" import camposNuevos %}
+
+<div style="display: flex; justify-content: flex-end;">
+    <a href="{{ url_for('logout') }}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-3 md:mr-0 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">LOGOUT</a>
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700" style="display: inline-block;">
+        <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Hola, {{ current_user.fullname }}</h1>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+    <div style="flex: 1; margin-right: 20px;">
+        <div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <Strong>
+                <h1>Formulario</h1>
+            </Strong>
+            <form method="post" action="" class="max-w-md mx-auto">
+                {{ formularioC.csrf_token }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                <div class="mb-4">
+                    {{ camposNuevos(formularioC.nombre.label, class="w-full p-2 border border-gray-300 rounded") }}{{ formularioC.nombre(class="form-control") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ camposNuevos(formularioC.direccion.label, class="w-full p-2 border border-gray-300 rounded") }}{{ formularioC.direccion(class="form-control") }}
+                </div>
+
+                <div class="mb-4">
+                    {{ camposNuevos(formularioC.telefono.label, class="w-full p-2 border border-gray-300 rounded") }}{{ formularioC.telefono(class="form-control") }}
+                </div>
+
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ formularioP.tamanio.label }}</label>
+                        <div class="btn-group w-100" role="group">
+                            {% for subfield in formularioP.tamanio %}
+                            <div class="form-check form-check-inline mb-2 me-3">
+                                {{ subfield(class="btn-check") }} {{ subfield.label(class="btn btn-outline-primary") }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ formularioP.ingredientes.label }}</label>
+                        <div class="row">
+                            {% for subfield in formularioP.ingredientes %}
+                            <div class="col-md-6 col-lg-4 mb-2">
+                                <div class="form-check">
+                                    {{ subfield(class="form-check-input") }} {{ subfield.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        {{ camposNuevos(formularioP.numerop.label, class="w-full p-2 border border-gray-300 rounded") }}{{ formularioP.numerop(class="form-control") }}
+                    </div>
+
+                    <center>
+                        <button type="submit" style="width: 250px;" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            Submit
+                        </button>
+                    </center>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div style="flex: 2;">
+        <Strong>
+            <h1>Tabla</h1>
+        </Strong>
+        <div class="mt-8 space-y-6">
+            <div class="p-4 bg-white rounded-lg shadow-md dark:bg-gray-800">
+                {% if tabla %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Tamaño</th>
+                                <th scope="col" class="px-6 py-3">Ingredientes</th>
+                                <th scope="col" class="px-6 py-3">Num. Pizzas</th>
+                                <th scope="col" class="px-6 py-3">Sub Total</th>
+                                <th scope="col" class="px-6 py-3">Eliminar fila</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set total = 0 %}
+                            {% for pizza in tabla %}
+                            {% set precio_base = {'pequena': 40, 'mediana': 80, 'grande': 120}[pizza.tamanio] %}
+                            {% set precio_ingredientes = pizza.ingredientes|length * 10 %}
+                            {% set subtotal_pizza = (precio_base + precio_ingredientes) * pizza.numerop|int %}
+                            {% set total = total + subtotal_pizza %}
+                            <tr class="border-b dark:border-gray-700">
+                                <td class="px-6 py-4">
+                                    {% if pizza.tamanio == 'pequena' %}
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">Pequeña</span>
+                                    {% elif pizza.tamanio == 'mediana' %}
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">Mediana</span>
+                                    {% else %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">Grande</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if pizza.ingredientes %}
+                                    {% for ingrediente in pizza.ingredientes %}
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">{{ ingrediente }}</span>
+                                    {% endfor %}
+                                    {% else %}
+                                    <em>Sin ingredientes</em>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">{{ pizza.numerop }}</td>
+                                <td class="px-6 py-4 text-right font-semibold">${{ subtotal_pizza }}</td>
+                                <td class="px-6 py-4">
+                                    <form method="POST" action="{{ url_for('eliminar_pizza', indice=loop.index0) }}" style="display: inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800" title="Eliminar pizza">
+                                            Eliminar
+                                        </button>
+                                        <i class="fas fa-trash"></i>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center bg-blue-100 text-blue-800 rounded-lg dark:bg-blue-900 dark:text-white">Aun no hay datos en nuestra tabla</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            {% if tabla %}
+            <form method="POST" action="{{ url_for('finalizarPedido') }}" id="formFinalizar" class="mt-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <center>
+                    <button type="submit" style="background-color: brown; color:white" class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-green-900 dark:text-green-300" title="Finalizar Compra">
+                        Finalizar pedido
+                    </button>
+                </center>
+            </form>
+            {% endif %}
+            <center>
+                <div class="card-body">
+                    {% if ventas_hoy %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th>Dirección</th>
+                                    <th class="text-end">Total Vendido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for venta in ventas_hoy %}
+                                <tr>
+                                    <td>{{ venta.nombre }}</td>
+                                    <td>{{ venta.telefono }}</td>
+                                    <td>{{ venta.direccion }}</td>
+                                    <td class="text-end">${{ venta.total }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total del día:</strong></td>
+                                    <td class="text-end"><strong>${{ total_ventas_hoy }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">No hay ventas registradas hoy</div>
+                    {% endif %}
+                </div>
+            </center>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="" style="display: inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <label class="inline-flex items-center mr-4">
+        <input type="radio" name="opcion" value="Mes" class="form-radio h-4 w-4 text-red-600">
+        <span class="ml-2 text-sm">Mes</span>
+    </label>
+
+    <label class="inline-flex items-center mr-4">
+        <input type="radio" name="opcion" value="Dia" class="form-radio h-4 w-4 text-red-600">
+        <span class="ml-2 text-sm">Dia</span>
+    </label>
+</form>
+
+{% endblock %}
