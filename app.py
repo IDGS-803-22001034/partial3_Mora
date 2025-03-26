@@ -100,19 +100,19 @@ def registro():
 @app.route('/buscar_ventas_por_fecha', methods=['POST'])
 def buscar_ventas_por_fecha():
     try:
-        # Obtener la fecha del formulario
+        
         fecha_str = request.form.get('fecha_busqueda')
         fecha_busqueda = datetime.strptime(fecha_str, '%m/%d/%Y').date()
         
-        # Buscar ventas para esa fecha
+        
         ventas = db.session.query(Cliente).filter(
             cast(Cliente.created_date, Date) == fecha_busqueda
         ).all()
         
-        # Calcular el total
+        
         total_ventas = sum(venta.total for venta in ventas) if ventas else 0
         
-        # Renderizar la plantilla con los resultados
+        
         return render_template('index.html', 
                             ventas_hoy=ventas, 
                             total_ventas_hoy=total_ventas,
@@ -162,7 +162,7 @@ def index():
         except ValueError:
             flash('Formato de fecha inválido. Use el formato MM/DD/YYYY', 'error')
 
-    # Código normal para manejar el formulario de pizza
+    
     if 'cliente_data' in session:
         formularioC.nombre.data = session['cliente_data'].get('nombre', '')
         formularioC.direccion.data = session['cliente_data'].get('direccion', '')
@@ -186,7 +186,7 @@ def index():
 
     tabla = colocarTabla()
 
-    # Obtener ventas del día actual por defecto
+    # Obtener ventas del día actual
     hoy = date.today()
     ventas_hoy = db.session.query(Cliente).filter(
         cast(Cliente.created_date, Date) == hoy
