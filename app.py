@@ -7,9 +7,13 @@ import forms
 from models import db
 from models import Cliente, IngredientePizza, DetallePizza
 from models import Usuario
+from forms import RegistroForm
 from ModelUser import ModelUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required
+from datetime import datetime
+from sqlalchemy import cast, Date
+from datetime import datetime, date
 
 
 app = Flask(__name__)
@@ -69,19 +73,100 @@ def logout():
 
 
 
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    form = RegistroForm()
+    
+    if form.validate_on_submit():
+
+        nuevo_usuario = Usuario(
+            username=form.username.data,
+            password=form.password.data,
+            fullname=form.fullname.data
+        )
+        
+
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        
+        flash('Registro exitoso. Por favor inicia sesión.', 'success')
+        return redirect(url_for('login'))  
+    
+    return render_template('registro.html', form=form)
+
+
+
+
+@app.route('/buscar_ventas_por_fecha', methods=['POST'])
+def buscar_ventas_por_fecha():
+    try:
+        # Obtener la fecha del formulario
+        fecha_str = request.form.get('fecha_busqueda')
+        fecha_busqueda = datetime.strptime(fecha_str, '%m/%d/%Y').date()
+        
+        # Buscar ventas para esa fecha
+        ventas = db.session.query(Cliente).filter(
+            cast(Cliente.created_date, Date) == fecha_busqueda
+        ).all()
+        
+        # Calcular el total
+        total_ventas = sum(venta.total for venta in ventas) if ventas else 0
+        
+        # Renderizar la plantilla con los resultados
+        return render_template('index.html', 
+                            ventas_hoy=ventas, 
+                            total_ventas_hoy=total_ventas,
+                            tabla=True,
+                            fecha_busqueda=fecha_busqueda.strftime('%d/%m/%Y'))
+    
+    except ValueError:
+        flash('Formato de fecha inválido. Use el formato MM/DD/YYYY', 'error')
+        return redirect(url_for('index'))
+
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/index", methods=['GET', 'POST'])
+@login_required
 def index():
     formularioP = forms.FormPizza(request.form)
     formularioC = forms.UserForm(request.form)
+    fecha_busqueda = None
 
+    # Manejar búsqueda por fecha
+    if request.method == 'POST' and 'fecha_busqueda' in request.form:
+        try:
+            fecha_str = request.form.get('fecha_busqueda')
+            fecha_busqueda = datetime.strptime(fecha_str, '%m/%d/%Y').date()
+            
+            ventas_hoy = db.session.query(Cliente).filter(
+                cast(Cliente.created_date, Date) == fecha_busqueda
+            ).all()
+            
+            total_ventas_hoy = sum(venta.total for venta in ventas_hoy) if ventas_hoy else 0
+            
+            if 'cliente_data' in session:
+                formularioC.nombre.data = session['cliente_data'].get('nombre', '')
+                formularioC.direccion.data = session['cliente_data'].get('direccion', '')
+                formularioC.telefono.data = session['cliente_data'].get('telefono', '')
+
+            tabla = colocarTabla()
+            
+            return render_template('index.html',
+                                formularioP=formularioP,
+                                formularioC=formularioC,
+                                tabla=tabla,
+                                ventas_hoy=ventas_hoy,
+                                total_ventas_hoy=total_ventas_hoy,
+                                fecha_busqueda=fecha_busqueda.strftime('%d/%m/%Y'))
+        
+        except ValueError:
+            flash('Formato de fecha inválido. Use el formato MM/DD/YYYY', 'error')
+
+    # Código normal para manejar el formulario de pizza
     if 'cliente_data' in session:
         formularioC.nombre.data = session['cliente_data'].get('nombre', '')
-        formularioC.direccion.data = session['cliente_data'].get(
-            'direccion', '')
-        formularioC.telefono.data = session['cliente_data'].get(
-            'telefono', '')
+        formularioC.direccion.data = session['cliente_data'].get('direccion', '')
+        formularioC.telefono.data = session['cliente_data'].get('telefono', '')
 
     if request.method == 'POST' and formularioP.validate_on_submit():
         session['cliente_data'] = {
@@ -101,19 +186,19 @@ def index():
 
     tabla = colocarTabla()
 
+    # Obtener ventas del día actual por defecto
+    hoy = date.today()
+    ventas_hoy = db.session.query(Cliente).filter(
+        cast(Cliente.created_date, Date) == hoy
+    ).all()
+    total_ventas_hoy = sum(venta.total for venta in ventas_hoy) if ventas_hoy else 0
 
-    ventas_hoy = []
-    total_ventas_hoy=0
-    total_dia = 0
-    try:
-        ventas_hoy = Cliente.query.filter(db.func.date(Cliente.created_date) == db.func.current_date()).all()
-        total_dia = db.session.query(db.func.sum(Cliente.total)).filter(db.func.date(Cliente.created_date) == db.func.current_date()).scalar() or 0
-        total_ventas_hoy=sum(Cliente.total for Cliente in ventas_hoy)
-    except:
-        ventas_hoy = []
-        total_dia = 0
-
-    return render_template('index.html',formularioP=formularioP,formularioC=formularioC,tabla=tabla,ventas_hoy=ventas_hoy,total_ventas_hoy=total_ventas_hoy)
+    return render_template('index.html',
+                         formularioP=formularioP,
+                         formularioC=formularioC,
+                         tabla=tabla,
+                         ventas_hoy=ventas_hoy,
+                         total_ventas_hoy=total_ventas_hoy)
 
 def agregarPizza(tamanio, numerop, ingredientes):
     ingredientes_lista = ",".join(ingredientes)

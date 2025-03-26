@@ -4,7 +4,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField,IntegerField,RadioField, SelectMultipleField, widgets, PasswordField, BooleanField, SubmitField
 from wtforms import EmailField
 from wtforms import validators
-from wtforms.validators import DataRequired, Length, NumberRange
+from wtforms.validators import DataRequired, Length, NumberRange, EqualTo, ValidationError
+from models import Usuario
  
  
 
@@ -88,3 +89,22 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Recuérdame')
     submit = SubmitField('Login')
+
+
+
+class RegistroForm(FlaskForm):
+    username = StringField('Nombre de usuario', 
+                         validators=[DataRequired(), Length(min=4, max=50)])
+    password = PasswordField('Contraseña', 
+                           validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirmar Contraseña',
+                                   validators=[DataRequired(), 
+                                              EqualTo('password')])
+    fullname = StringField('Nombre completo', 
+                          validators=[DataRequired(), Length(min=3, max=100)])
+    submit = SubmitField('Registrarse')
+
+    def validate_username(self, username):
+        usuario = Usuario.query.filter_by(username=username.data).first()
+        if usuario:
+            raise ValidationError('El nombre de usuario ya está en uso. Por favor elige otro.')

@@ -1,0 +1,73 @@
+{%extends "layout.html"%}
+
+{%block container%}
+{%from "_macros.html" import camposNuevos%}
+
+
+
+{%with message = get_flashed_messages() %}
+
+{% if messages %}
+<br>
+{%for message in messages%}
+<strong>{{message}}</strong>
+{%endfor%}
+{%endif%}
+{%endwith%}
+
+<center>
+    <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Pizzas ZE</h1>
+    <br>
+    <br>
+  
+    <div style="background-color:rgb(133, 178, 255)" class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+      <form method="POST" action="{{ url_for('registro') }}" class="max-w-sm mx-auto">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-5">
+          <center>
+            <p class="text-2xl text-gray-900 dark:text-white">Registro de Usuario</p>
+          </center>
+        </div>
+        
+        <div class="mb-5">
+          <label for="username" class="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Nombre de usuario</label>
+          {{ form.username(style="background-color:white", class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", placeholder="Nombre Usuario") }}
+          {% for error in form.username.errors %}
+            <span class="text-sm text-red-600 dark:text-red-400">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        <div class="mb-5">
+          <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Contraseña</label>
+          {{ form.password(style="background-color:white", class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", placeholder="Contraseña") }}
+          {% for error in form.password.errors %}
+            <span class="text-sm text-red-600 dark:text-red-400">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        <div class="mb-5">
+          <label for="confirm_password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Confirmar Contraseña</label>
+          {{ form.confirm_password(style="background-color:white", class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", placeholder="Repite tu contraseña") }}
+          {% for error in form.confirm_password.errors %}
+            <span class="text-sm text-red-600 dark:text-red-400">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        <div class="mb-5">
+          <label for="fullname" class="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Nombre completo</label>
+          {{ form.fullname(style="background-color:white", class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", placeholder="Tu nombre completo") }}
+          {% for error in form.fullname.errors %}
+            <span class="text-sm text-red-600 dark:text-red-400">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Registrarse</button>
+      </form>
+      
+      <p class="mt-3 text-sm text-gray-900 dark:text-white">¿Ya tienes una cuenta? 
+        <a href="{{ url_for('login') }}" class="text-blue-600 hover:underline dark:text-blue-500">Inicia sesión</a>
+      </p>
+    </div>
+  </center>
+{% endblock %}

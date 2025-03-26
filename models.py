@@ -59,3 +59,5 @@ class Usuario(UserMixin, db.Model):
 
     
 #print(generate_password_hash("Seguridad"))
+
+
